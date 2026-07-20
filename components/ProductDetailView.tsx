@@ -34,7 +34,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const cartQty = cart[selectedProduct.id] || 0;
 
   return (
-    <ScrollView key="detail-scroll" className="flex-1 px-6 pt-4" showsVerticalScrollIndicator={false}>
+    <ScrollView key="detail-scroll" className="flex-1 px-6 pt-4 bg-white" showsVerticalScrollIndicator={false}>
       <View className="pb-12">
         {/* Header: Back & Category Tag */}
         <View className="flex-row justify-between items-center mb-6">
@@ -43,22 +43,22 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               triggerLightHaptic();
               setSelectedProduct(null);
             }}
-            className="flex-row items-center bg-[#161C30] border border-white/10 px-4 py-2.5 rounded-none active:bg-white/10"
+            className="flex-row items-center bg-gray-50 border border-gray-100 px-4 py-2 rounded-none active:bg-gray-100"
           >
-            <Ionicons name="arrow-back" size={18} color="#3B82F6" />
-            <Text className="text-white text-xs font-bold ml-1.5 uppercase tracking-wider">Back</Text>
+            <Ionicons name="arrow-back" size={18} color="#D74A33" />
+            <Text className="text-black text-xs font-bold ml-1.5 uppercase tracking-wider">Back</Text>
           </Pressable>
           
-          <View className="bg-[#3B82F6]/10 border border-[#3B82F6]/30 px-3.5 py-1.5 rounded-none">
-            <Text className="text-[10px] text-[#3B82F6] font-black uppercase tracking-widest">
+          <View className="bg-red-50 border border-red-100 px-3.5 py-1.5 rounded-none">
+            <Text className="text-[10px] text-[#D74A33] font-bold uppercase tracking-wider">
               {selectedProduct.subCategory}
             </Text>
           </View>
         </View>
 
         {/* Giant Sharp Gallery Section */}
-        <View className="border border-white/5 rounded-none bg-[#121829] relative overflow-hidden mb-6">
-          {/* Permanent Blue Accent Line */}
+        <View className="border border-gray-100 rounded-none bg-white relative overflow-hidden mb-6">
+          {/* Permanent Red Accent Line */}
           <View 
             style={{ 
               position: 'absolute', 
@@ -66,12 +66,12 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               left: 0, 
               right: 0, 
               height: 3.5, 
-              backgroundColor: '#3B82F6', 
+              backgroundColor: '#D74A33', 
               zIndex: 10 
             }} 
           />
           
-          <View className="w-full aspect-square bg-[#161C30] items-center justify-center">
+          <View className="w-full aspect-square bg-white items-center justify-center border border-gray-100">
             {selectedProduct.images && selectedProduct.images[activeDetailImg] ? (
               <Image
                 source={selectedProduct.images[activeDetailImg]}
@@ -91,7 +91,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             )}
           </View>
           
-          {/* Permanent Blue Accent Line */}
+          {/* Permanent Red Accent Line */}
           <View 
             style={{ 
               position: 'absolute', 
@@ -99,7 +99,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               left: 0, 
               right: 0, 
               height: 3.5, 
-              backgroundColor: '#3B82F6', 
+              backgroundColor: '#D74A33', 
               zIndex: 10 
             }} 
           />
@@ -115,7 +115,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   triggerLightHaptic();
                   setActiveDetailImg(idx);
                 }}
-                className={`w-16 h-16 bg-[#121829] border ${activeDetailImg === idx ? 'border-[#3B82F6]' : 'border-white/10'} rounded-none overflow-hidden items-center justify-center p-1`}
+                className={`w-16 h-16 bg-white border ${activeDetailImg === idx ? 'border-[#D74A33]' : 'border-gray-150'} rounded-none overflow-hidden items-center justify-center p-1`}
               >
                 <Image source={img} style={{ width: '100%', height: '100%' }} contentFit="contain" />
               </Pressable>
@@ -126,90 +126,90 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
         {/* Product Meta details */}
         <View className="mb-6">
           <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-2xl font-black text-white tracking-tight flex-1 mr-4">
+            <Text className="text-2xl font-black text-black tracking-tight flex-1 mr-4">
               {selectedProduct.name}
             </Text>
-            <Text className="text-amber-500 font-extrabold text-sm">★ {selectedProduct.rating}</Text>
+            <Text className="text-amber-600 font-extrabold text-sm">★ {selectedProduct.rating}</Text>
           </View>
 
           {/* Tags */}
           <View className="flex-row flex-wrap gap-2 mb-4">
             {selectedProduct.tags.map((tag, i) => (
-              <View key={i} className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-none">
-                <Text className="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider">{tag}</Text>
+              <View key={i} className="bg-gray-50 border border-gray-100 px-2.5 py-0.5 rounded-none">
+                <Text className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">{tag}</Text>
               </View>
             ))}
           </View>
 
-          <Text className="text-gray-400 text-xs leading-relaxed">
+          <Text className="text-slate-600 text-xs leading-relaxed">
             {selectedProduct.description}
           </Text>
         </View>
 
         {/* Specifications Card */}
-        <View className="bg-[#121829] border border-white/5 px-3.5 py-4 rounded-none mb-6">
-          <Text className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest mb-3">
+        <View className="bg-gray-50 border border-gray-100 px-4 py-4 rounded-none mb-6">
+          <Text className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3">
             Wholesale Specifications
           </Text>
           
-          <View className="flex-row justify-between py-2.5 border-b border-white/5 items-center">
-            <Text className="text-gray-400 text-[11px]" numberOfLines={1}>Standard MOQ</Text>
-            <Text className="text-white text-[11px] font-bold" numberOfLines={1}>{selectedProduct.moq} Pack{selectedProduct.moq > 1 ? 's' : ''}</Text>
+          <View className="flex-row justify-between py-2 border-b border-gray-200/50 items-center">
+            <Text className="text-slate-500 text-[11px]" numberOfLines={1}>Standard MOQ</Text>
+            <Text className="text-black text-[11px] font-bold" numberOfLines={1}>{selectedProduct.moq} Pack{selectedProduct.moq > 1 ? 's' : ''}</Text>
           </View>
           
-          <View className="flex-row justify-between py-2.5 border-b border-white/5 items-center">
-            <Text className="text-gray-400 text-[11px]" numberOfLines={1}>Pack Configuration</Text>
-            <Text className="text-white text-[11px] font-bold" numberOfLines={1}>{selectedProduct.packSize} Units / Pack</Text>
+          <View className="flex-row justify-between py-2 border-b border-gray-200/50 items-center">
+            <Text className="text-slate-500 text-[11px]" numberOfLines={1}>Pack Configuration</Text>
+            <Text className="text-black text-[11px] font-bold" numberOfLines={1}>{selectedProduct.packSize} Units / Pack</Text>
           </View>
           
-          <View className="flex-row justify-between py-2.5 border-b border-white/5 items-center">
-            <Text className="text-gray-400 text-[11px]" numberOfLines={1}>Wholesale Price / Unit</Text>
-            <Text className="text-emerald-400 text-[11px] font-bold" numberOfLines={1}>
+          <View className="flex-row justify-between py-2 border-b border-gray-200/50 items-center">
+            <Text className="text-slate-500 text-[11px]" numberOfLines={1}>Wholesale Price / Unit</Text>
+            <Text className="text-[#D74A33] text-[11px] font-bold" numberOfLines={1}>
               ${finalUnitPrice.toFixed(2)}
             </Text>
           </View>
           
-          <View className="flex-row justify-between py-2.5 border-b border-white/5 items-center">
-            <Text className="text-gray-400 text-[11px]" numberOfLines={1}>Pack Price</Text>
-            <Text className="text-white text-[11px] font-bold" numberOfLines={1}>
+          <View className="flex-row justify-between py-2 border-b border-gray-200/50 items-center">
+            <Text className="text-slate-500 text-[11px]" numberOfLines={1}>Pack Price</Text>
+            <Text className="text-black text-[11px] font-bold" numberOfLines={1}>
               ${packPrice.toFixed(2)}
             </Text>
           </View>
           
-          <View className="flex-row justify-between py-2.5 items-center">
-            <Text className="text-gray-400 text-[11px]" numberOfLines={1}>Physical Inventory</Text>
-            <Text className="text-emerald-500 text-[11px] font-bold" numberOfLines={1}>{selectedProduct.stock.toLocaleString()} Units Ready</Text>
+          <View className="flex-row justify-between py-2 items-center">
+            <Text className="text-slate-500 text-[11px]" numberOfLines={1}>Physical Inventory</Text>
+            <Text className="text-emerald-600 text-[11px] font-bold" numberOfLines={1}>{selectedProduct.stock.toLocaleString()} Units Ready</Text>
           </View>
         </View>
 
         {/* Dynamic Wholesale Pricing Calculator */}
-        <View className="bg-[#161C30] border border-white/5 p-4 rounded-none mb-6 items-center justify-between flex-row">
+        <View className="bg-gray-50 border border-gray-100 p-4 rounded-none mb-6 items-center justify-between flex-row">
           <View>
-            <Text className="text-[10px] text-gray-500 font-extrabold uppercase tracking-wider">Estimated Price</Text>
-            <Text className="text-xl font-black text-white mt-1">
+            <Text className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Estimated Price</Text>
+            <Text className="text-xl font-black text-black mt-1">
               ${(cartQty * packPrice).toFixed(2)}
             </Text>
-            <Text className="text-[8px] text-slate-400 mt-0.5">
+            <Text className="text-[8.5px] text-slate-500 mt-0.5">
               {cartQty * selectedProduct.packSize} units in cart
             </Text>
           </View>
 
           {/* Stepper Inside Detail */}
-          <View className="flex-row items-center bg-[#090D1A] border border-[#3B82F6]/40 rounded-none overflow-hidden h-10 px-1">
+          <View className="flex-row items-center bg-white border border-gray-200 rounded-none overflow-hidden h-10 px-1">
             <Pressable
               onPress={() => updateCartQty(selectedProduct.id, -1, selectedProduct)}
-              className="w-10 h-10 rounded-none items-center justify-center active:bg-white/10"
+              className="w-10 h-10 rounded-none items-center justify-center active:bg-gray-50"
             >
-              <Ionicons name="remove" size={18} color={cartQty > 0 ? '#3B82F6' : '#475569'} />
+              <Ionicons name="remove" size={18} color={cartQty > 0 ? '#D74A33' : '#CBD5E1'} />
             </Pressable>
-            <Text className={`w-10 text-center font-bold text-sm ${cartQty > 0 ? 'text-white' : 'text-slate-500'}`}>
+            <Text className={`w-10 text-center font-bold text-sm ${cartQty > 0 ? 'text-black' : 'text-slate-400'}`}>
               {cartQty}
             </Text>
             <Pressable
               onPress={() => updateCartQty(selectedProduct.id, 1, selectedProduct)}
-              className="w-10 h-10 rounded-none items-center justify-center active:bg-white/10"
+              className="w-10 h-10 rounded-none items-center justify-center active:bg-gray-50"
             >
-              <Ionicons name="add" size={18} color="#3B82F6" />
+              <Ionicons name="add" size={18} color="#D74A33" />
             </Pressable>
           </View>
         </View>
@@ -219,7 +219,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
           onPress={onPlaceOrderDirect}
           disabled={cartQty === 0}
           className={`py-4 rounded-none flex-row items-center justify-center mb-6 ${
-            cartQty > 0 ? 'bg-[#10B981] active:bg-[#059669]' : 'bg-[#161C30] opacity-50'
+            cartQty > 0 ? 'bg-[#D74A33] active:bg-[#C23C27]' : 'bg-gray-100 opacity-55'
           }`}
         >
           <Ionicons name="flash" size={14} color="white" style={{ marginRight: 6 }} />

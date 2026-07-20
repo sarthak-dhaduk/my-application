@@ -31,4 +31,4 @@ export interface Cart {
   [productId: string]: number;
 }
 
-export type TabType = 'home' | 'catalog' | 'cart' | 'contact';
+export type TabType = 'home' | 'catalog' | 'cart' | 'contact' | 'profile';
