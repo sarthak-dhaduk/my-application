@@ -9,7 +9,6 @@ import { BottomTabBar } from '../components/layout/BottomTabBar';
 import { HeaderBar } from '../components/layout/HeaderBar';
 import { OffersView } from '../components/offers/OffersView';
 import { OrdersView } from '../components/orders/OrdersView';
-import { ProductDetailView } from '../components/ProductDetailView';
 import { ProfileView } from '../components/profile/ProfileView';
 import { ShopView } from '../components/shop/ShopView';
 import SplashScreen from '../components/splash/SplashScreen';
@@ -29,7 +28,6 @@ export default function Index() {
   const [activeSubCategory, setActiveSubCategory] = useState<string>('ALL');
 
   // Product Detail State
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedNewProduct, setSelectedNewProduct] = useState<NewProduct | null>(null);
   const [activeDetailImg, setActiveDetailImg] = useState(0);
 
@@ -53,10 +51,6 @@ export default function Index() {
         setActiveShopCategory(null);
         return true;
       }
-      if (selectedProduct) {
-        setSelectedProduct(null);
-        return true;
-      }
       if (currentTab !== 'home') {
         setCurrentTab('home');
         return true;
@@ -66,7 +60,7 @@ export default function Index() {
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => subscription.remove();
-  }, [selectedProduct, selectedNewProduct, currentTab]);
+  }, [selectedNewProduct, currentTab]);
 
   // Standard Animated value for splash screen portal fade-in
   const mainPortalOpacity = useRef(new Animated.Value(0)).current;
@@ -146,8 +140,7 @@ export default function Index() {
     triggerLightHaptic();
     setShowOrderSuccess(false);
     setCart({});
-    setSelectedProduct(null);
-    setCurrentTab('catalog');
+    setCurrentTab('home');
   };
 
   // Splash Loading Screen
@@ -162,33 +155,31 @@ export default function Index() {
       <StatusBar style="dark" />
 
       {/* Global Header Bar */}
-      {!selectedProduct && (
-        <HeaderBar
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-          activeCategoryTitle={activeCategoryTitle}
-          cart={cart}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          triggerLightHaptic={triggerLightHaptic}
-          startSplashAnimation={startSplashAnimation}
-          setIsCartDrawerOpen={(open: boolean) => {
-            if (open) setCartDrawerStep('cart');
-            setIsCartDrawerOpen(open);
-          }}
-          isSearchActive={isSearchActive}
-          setIsSearchActive={setIsSearchActive}
-          onProductSelect={(product) => {
-            setSelectedNewProduct(product);
-            setCurrentTab('home');
-          }}
-          onCategorySelect={(categoryName) => {
-            setActiveShopCategory(categoryName);
-            setSelectedNewProduct(null);
-            setCurrentTab('home');
-          }}
-        />
-      )}
+      <HeaderBar
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        activeCategoryTitle={activeCategoryTitle}
+        cart={cart}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        triggerLightHaptic={triggerLightHaptic}
+        startSplashAnimation={startSplashAnimation}
+        setIsCartDrawerOpen={(open: boolean) => {
+          if (open) setCartDrawerStep('cart');
+          setIsCartDrawerOpen(open);
+        }}
+        isSearchActive={isSearchActive}
+        setIsSearchActive={setIsSearchActive}
+        onProductSelect={(product) => {
+          setSelectedNewProduct(product);
+          setCurrentTab('home');
+        }}
+        onCategorySelect={(categoryName) => {
+          setActiveShopCategory(categoryName);
+          setSelectedNewProduct(null);
+          setCurrentTab('home');
+        }}
+      />
 
       {/* 2. Main Tab Views */}
       <View className="flex-1">
@@ -209,17 +200,13 @@ export default function Index() {
               setActiveShopCategory={setActiveShopCategory}
               setSelectedCategoryId={setSelectedCategoryId}
               setActiveSubCategory={setActiveSubCategory}
-              setSelectedProduct={(p: any) => {
-                if (p && 'subtitle' in p) setSelectedNewProduct(p);
-                else setSelectedProduct(p);
-              }}
+              setSelectedNewProduct={setSelectedNewProduct}
               triggerLightHaptic={triggerLightHaptic}
               startSplashAnimation={startSplashAnimation}
               cart={cart}
               updateCartQty={updateCartQty}
               onBuyNow={handleBuyNow}
               onOfferPress={(category: string) => {
-                setSelectedProduct(null);
                 setSelectedNewProduct(null);
                 setSelectedOffersCategory(category);
                 setCurrentTab('catalog');
@@ -229,7 +216,7 @@ export default function Index() {
         )}
 
         {currentTab === 'catalog' && (
-          <View className="flex-1 mb-20">
+          <View className="flex-1">
             {selectedNewProduct ? (
               <NewProductDetailView
                 product={selectedNewProduct}
@@ -239,23 +226,9 @@ export default function Index() {
                 onPlaceOrder={() => handleBuyNow(selectedNewProduct.id)}
                 triggerLightHaptic={triggerLightHaptic}
               />
-            ) : selectedProduct ? (
-              <ProductDetailView
-                selectedProduct={selectedProduct}
-                setSelectedProduct={setSelectedProduct}
-                activeDetailImg={activeDetailImg}
-                setActiveDetailImg={setActiveDetailImg}
-                cart={cart}
-                updateCartQty={updateCartQty}
-                onPlaceOrderDirect={handlePlaceOrderDirect}
-                triggerLightHaptic={triggerLightHaptic}
-              />
             ) : (
               <OffersView
-                setSelectedProduct={(p: any) => {
-                  if (p && 'subtitle' in p) setSelectedNewProduct(p);
-                  else setSelectedProduct(p);
-                }}
+                setSelectedNewProduct={setSelectedNewProduct}
                 cart={cart}
                 updateCartQty={updateCartQty}
                 triggerLightHaptic={triggerLightHaptic}
@@ -270,7 +243,7 @@ export default function Index() {
         {currentTab === 'cart' && (
           <OrdersView
             cart={cart}
-            setSelectedProduct={setSelectedProduct}
+            setSelectedNewProduct={setSelectedNewProduct}
             setCurrentTab={setCurrentTab}
             updateCartQty={updateCartQty}
             handlePlaceOrderDirect={handlePlaceOrderDirect}
@@ -303,9 +276,8 @@ export default function Index() {
             }
             setCurrentTab(tab);
           }}
-          setSelectedProduct={setSelectedProduct}
           setSelectedNewProduct={setSelectedNewProduct}
-          isDetailViewActive={!!selectedProduct || !!selectedNewProduct}
+          isDetailViewActive={!!selectedNewProduct}
           cart={cart}
           triggerLightHaptic={triggerLightHaptic}
           hasActiveDelivery={true} // Mock state to show the blue dot indicator

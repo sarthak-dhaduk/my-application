@@ -22,7 +22,7 @@ const CATEGORY_CONFIG: {
 const ALL_CATEGORIES = ['All', 'Mobile', 'Console', 'Dress', 'Polos', 'Shoes', 'Watches'];
 
 interface OffersViewProps {
-  setSelectedProduct: (product: any) => void;
+  setSelectedNewProduct: (product: any) => void;
   cart: Cart;
   updateCartQty: (id: string, delta: number, product: any) => void;
   triggerLightHaptic: () => void;
@@ -76,7 +76,7 @@ const OffersSkeleton = ({ layoutMode }: { layoutMode: 'grid' | 'list' }) => {
 
 // ── Main OffersView ───────────────────────────────────────────────────────────
 export const OffersView: React.FC<OffersViewProps> = ({
-  setSelectedProduct,
+  setSelectedNewProduct,
   cart,
   updateCartQty,
   triggerLightHaptic,
@@ -271,7 +271,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
                 product={product}
                 cartQty={cart[product.id] || 0}
                 onUpdateQty={(delta) => updateCartQty(product.id, delta, product)}
-                onPress={() => { triggerLightHaptic(); setSelectedProduct(product); }}
+                onPress={() => { triggerLightHaptic(); setSelectedNewProduct(product); }}
                 isGrid={true}
               />
             ))}
@@ -284,7 +284,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
                 product={product}
                 cartQty={cart[product.id] || 0}
                 onUpdateQty={(delta) => updateCartQty(product.id, delta, product)}
-                onPress={() => { triggerLightHaptic(); setSelectedProduct(product); }}
+                onPress={() => { triggerLightHaptic(); setSelectedNewProduct(product); }}
                 isGrid={false}
               />
             ))}
@@ -297,6 +297,9 @@ export const OffersView: React.FC<OffersViewProps> = ({
             <ActivityIndicator size="small" color="#D74A33" />
           </View>
         )}
+
+        {/* Bottom spacer to clear BottomTabBar */}
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   );

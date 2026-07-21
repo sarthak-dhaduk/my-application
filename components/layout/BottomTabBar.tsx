@@ -8,7 +8,6 @@ import { Cart, TabType } from '../types';
 interface BottomTabBarProps {
   currentTab: TabType;
   setCurrentTab: (tab: TabType) => void;
-  setSelectedProduct: (product: any) => void;
   setSelectedNewProduct?: (product: any) => void;
   isDetailViewActive?: boolean;
   cart: Cart;
@@ -19,7 +18,6 @@ interface BottomTabBarProps {
 export const BottomTabBar: React.FC<BottomTabBarProps> = ({
   currentTab,
   setCurrentTab,
-  setSelectedProduct,
   setSelectedNewProduct,
   isDetailViewActive,
   cart,
@@ -75,7 +73,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
               key={tab.key}
               onPress={() => {
                 triggerLightHaptic();
-                setSelectedProduct(null);
+                // setSelectedProduct removed
                 if (setSelectedNewProduct) setSelectedNewProduct(null);
                 setCurrentTab(tab.key);
               }}
@@ -115,7 +113,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
             key={tab.key}
             onPress={() => {
               triggerLightHaptic();
-              setSelectedProduct(null);
+              // setSelectedProduct removed
               if (setSelectedNewProduct) setSelectedNewProduct(null);
               setCurrentTab(tab.key);
             }}

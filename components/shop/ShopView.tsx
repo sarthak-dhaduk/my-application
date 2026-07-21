@@ -36,7 +36,7 @@ interface ShopViewProps {
   setActiveShopCategory: (cat: string | null) => void;
   setSelectedCategoryId: (catId: string) => void;
   setActiveSubCategory: (subCat: string) => void;
-  setSelectedProduct: (product: any) => void;
+  setSelectedNewProduct: (product: NewProduct) => void;
   triggerLightHaptic: () => void;
   startSplashAnimation: () => void;
   cart: Cart;
@@ -173,7 +173,7 @@ export const ShopView: React.FC<ShopViewProps> = ({
   setCurrentTab,
   setSelectedCategoryId,
   setActiveSubCategory,
-  setSelectedProduct,
+  setSelectedNewProduct,
   triggerLightHaptic,
   cart,
   updateCartQty,
@@ -474,7 +474,7 @@ export const ShopView: React.FC<ShopViewProps> = ({
         cart={cart}
         updateCartQty={updateCartQty}
         onBuyNow={onBuyNow}
-        setSelectedProduct={setSelectedProduct}
+        setSelectedNewProduct={setSelectedNewProduct}
         triggerLightHaptic={triggerLightHaptic}
       />
     );
@@ -1003,7 +1003,7 @@ export const ShopView: React.FC<ShopViewProps> = ({
                                   product={product}
                                   cartQty={cart[product.id] || 0}
                                   onUpdateQty={(delta) => updateCartQty(product.id, delta, product as any)}
-                                  onPress={() => setSelectedProduct(product)}
+                                  onPress={() => setSelectedNewProduct(product)}
                                   isGrid={true}
                                   onBuyNow={() => onBuyNow && onBuyNow(product.id)}
                                 />
@@ -1017,7 +1017,7 @@ export const ShopView: React.FC<ShopViewProps> = ({
                                   product={product}
                                   cartQty={cart[product.id] || 0}
                                   onUpdateQty={(delta) => updateCartQty(product.id, delta, product as any)}
-                                  onPress={() => setSelectedProduct(product)}
+                                  onPress={() => setSelectedNewProduct(product)}
                                   isGrid={false}
                                   onBuyNow={() => onBuyNow && onBuyNow(product.id)}
                                 />

@@ -120,7 +120,7 @@ const OrdersSkeleton = () => {
 
 interface OrdersViewProps {
   cart: Cart;
-  setSelectedProduct: (product: Product | null) => void;
+  setSelectedNewProduct: (product: any) => void;
   setCurrentTab: (tab: TabType) => void;
   updateCartQty: (id: string, delta: number, product: Product) => void;
   handlePlaceOrderDirect: () => void;
@@ -129,7 +129,7 @@ interface OrdersViewProps {
 
 export const OrdersView: React.FC<OrdersViewProps> = ({
   cart,
-  setSelectedProduct,
+  setSelectedNewProduct,
   setCurrentTab,
   updateCartQty,
   handlePlaceOrderDirect,

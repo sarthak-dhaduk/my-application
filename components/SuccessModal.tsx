@@ -67,7 +67,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
               className="w-full bg-[#D74A33] py-3.5 items-center justify-center rounded-none active:bg-[#C23C27]"
             >
               <Text className="text-white font-bold text-xs uppercase tracking-wider">
-                Back to Catalog
+                Back to Home
               </Text>
             </Pressable>
           </View>

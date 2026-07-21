@@ -11,7 +11,7 @@ interface ShopCategoryViewProps {
   cart: Cart;
   updateCartQty: (id: string, delta: number, product: any) => void;
   onBuyNow?: (id: string) => void;
-  setSelectedProduct: (product: any) => void;
+  setSelectedNewProduct: (product: any) => void;
   triggerLightHaptic: () => void;
 }
 
@@ -64,7 +64,7 @@ export const ShopCategoryView: React.FC<ShopCategoryViewProps> = ({
   cart,
   updateCartQty,
   onBuyNow,
-  setSelectedProduct,
+  setSelectedNewProduct,
   triggerLightHaptic,
 }) => {
   const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid');
@@ -208,7 +208,7 @@ export const ShopCategoryView: React.FC<ShopCategoryViewProps> = ({
                   product={product}
                   cartQty={cart[product.id] || 0}
                   onUpdateQty={(delta) => updateCartQty(product.id, delta, product as any)}
-                  onPress={() => setSelectedProduct(product)}
+                  onPress={() => setSelectedNewProduct(product)}
                   isGrid={true}
                   onBuyNow={() => onBuyNow && onBuyNow(product.id)}
                 />
@@ -222,7 +222,7 @@ export const ShopCategoryView: React.FC<ShopCategoryViewProps> = ({
                   product={product}
                   cartQty={cart[product.id] || 0}
                   onUpdateQty={(delta) => updateCartQty(product.id, delta, product as any)}
-                  onPress={() => setSelectedProduct(product)}
+                  onPress={() => setSelectedNewProduct(product)}
                   isGrid={false}
                   onBuyNow={() => onBuyNow && onBuyNow(product.id)}
                 />
