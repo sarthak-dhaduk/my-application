@@ -120,7 +120,7 @@ export const ContactView: React.FC<ContactViewProps> = ({
     <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} showsVerticalScrollIndicator={false}>
       
       {/* Header Area */}
-      <View style={{ backgroundColor: THEME, paddingHorizontal: 24, paddingTop: 40, paddingBottom: 60, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 }}>
+      <View style={{ backgroundColor: THEME, paddingHorizontal: 24, paddingTop: 40, paddingBottom: 60 }}>
         <Text style={{ fontSize: 32, fontWeight: '900', color: '#fff', letterSpacing: -0.5, marginBottom: 8 }}>
           Get in Touch
         </Text>

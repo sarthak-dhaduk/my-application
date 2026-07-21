@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, BackHandler, View } from 'react-native';
 
-import { CATEGORIES } from '../components/constants';
+
 import { ContactView } from '../components/contact/ContactView';
 import { BottomTabBar } from '../components/layout/BottomTabBar';
 import { HeaderBar } from '../components/layout/HeaderBar';
@@ -155,7 +155,7 @@ export default function Index() {
     return <SplashScreen />;
   }
 
-  const activeCategoryTitle = CATEGORIES.find((c) => c.id === selectedCategoryId)?.title;
+  const activeCategoryTitle = activeShopCategory || '';
 
   return (
     <Animated.View style={{ flex: 1, opacity: mainPortalOpacity }} className="bg-white">
@@ -326,6 +326,10 @@ export default function Index() {
         isVisible={isCartDrawerOpen}
         initialStep={cartDrawerStep}
         onClose={() => setIsCartDrawerOpen(false)}
+        onBrowse={() => {
+          setIsCartDrawerOpen(false);
+          setCurrentTab('home');
+        }}
         cart={cart}
         updateCartQty={updateCartQty}
         clearCart={() => setCart({})}
