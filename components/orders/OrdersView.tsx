@@ -3,7 +3,7 @@ import { View, Text, Pressable, ScrollView, Animated, Linking, Modal, LayoutAnim
 import { Image } from 'expo-image';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { Product, Cart, TabType } from '../types';
-import { PRODUCTS } from '../constants';
+
 import { NEW_PRODUCTS } from '../../lib/products';
 
 const THEME = '#D74A33';
@@ -120,7 +120,7 @@ const OrdersSkeleton = () => {
 
 interface OrdersViewProps {
   cart: Cart;
-  setSelectedProduct: (product: Product | null) => void;
+  setSelectedNewProduct: (product: any) => void;
   setCurrentTab: (tab: TabType) => void;
   updateCartQty: (id: string, delta: number, product: Product) => void;
   handlePlaceOrderDirect: () => void;
@@ -129,7 +129,7 @@ interface OrdersViewProps {
 
 export const OrdersView: React.FC<OrdersViewProps> = ({
   cart,
-  setSelectedProduct,
+  setSelectedNewProduct,
   setCurrentTab,
   updateCartQty,
   handlePlaceOrderDirect,
@@ -150,16 +150,14 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     let totalItems = 0;
     let totalPrice = 0;
     Object.keys(cart).forEach((id) => {
-      const product = PRODUCTS.find((p) => p.id === id);
+      const product = NEW_PRODUCTS.find((p) => p.id === id);
       if (product) {
-        const packs = cart[id];
-        const units = packs * product.packSize;
+        const units = cart[id];
         totalItems += units;
         
-        const hasOffer = product.badge === 'offer' || !!product.offerPercentage;
-        const finalUnitPrice = hasOffer && product.offerPercentage
-          ? product.unitPrice * (1 - product.offerPercentage / 100)
-          : product.unitPrice;
+        const finalUnitPrice = product.offer
+          ? product.price * (1 - product.offer / 100)
+          : product.price;
 
         totalPrice += units * finalUnitPrice;
       }

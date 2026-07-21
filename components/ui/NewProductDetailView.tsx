@@ -523,7 +523,7 @@ export const NewProductDetailView: React.FC<Props> = ({
         </View>
 
         {/* Bottom spacer to clear BottomTabBar */}
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
       </>
       )}

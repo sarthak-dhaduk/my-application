@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Pressable, Text, TextInput, Animated, Dimensions, Keyboard, ScrollView, Image } from 'react-native';
+import { View, Pressable, Text, TextInput, Animated, Dimensions, Keyboard, ScrollView, Image, BackHandler } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { TabType, Cart } from '../types';
@@ -96,6 +96,22 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   const slimeAnim = useRef(new Animated.Value(0)).current;
   const screenHeight = Dimensions.get('window').height;
 
+  useEffect(() => {
+    if (isSearchActive) {
+      const backAction = () => {
+        handleCloseSearch();
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction
+      );
+
+      return () => backHandler.remove();
+    }
+  }, [isSearchActive]);
+
   // Calculate total packs in the cart
   const totalPacks = Object.values(cart).reduce((a, b) => a + b, 0);
 
@@ -143,7 +159,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         <Animated.View
           style={{
             position: 'absolute',
-            top: 105,
+            top: 115,
             left: 0,
             right: 0,
             height: screenHeight,
@@ -298,7 +314,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
       )}
 
       {/* ── Main Header UI ── */}
-      <View style={{ zIndex: 2 }} className="flex-row justify-between items-center px-6 pt-14 pb-4 bg-white border-b border-gray-100 h-[105px] relative">
+      <View style={{ zIndex: 2 }} className="flex-row justify-between items-center px-6 pt-16 pb-4 bg-white border-b border-gray-100 h-[115px] relative">
         {isSearchActive ? (
         /* Full Width Next-Level Search Header View */
         <View className="flex-1 flex-row items-center justify-between">
