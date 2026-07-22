@@ -4,62 +4,10 @@ import { Image } from 'expo-image';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { Product, Cart, TabType } from '../types';
 
-import { NEW_PRODUCTS } from '../../lib/products';
+import { fetchAllProducts } from '../../lib/fetchAllProducts';
 
 const THEME = '#D74A33';
 const NAVY = '#1E3A5F';
-
-// ── Mock Historical Orders ───────────────────────────────────────────
-const MOCK_ORDERS = [
-  {
-    id: '#ORD-88219',
-    date: 'July 18, 2026',
-    status: 'Out for Delivery',
-    total: (NEW_PRODUCTS[4].price * 1) + (NEW_PRODUCTS[5].price * 2),
-    itemsText: '3 items',
-    products: [
-      { name: NEW_PRODUCTS[4].name, qty: 1, price: NEW_PRODUCTS[4].price, image: NEW_PRODUCTS[4].rootImage },
-      { name: NEW_PRODUCTS[5].name, qty: 2, price: NEW_PRODUCTS[5].price, image: NEW_PRODUCTS[5].rootImage }
-    ],
-    address: {
-      name: 'Retail Partners Inc.',
-      street: '1284 Market Street, Suite 400',
-      city: 'San Francisco, CA 94104',
-      phone: '+1 (555) 019-2834'
-    },
-    deliveryAgent: {
-      name: 'Michael Davis',
-      phone: '+1 (555) 890-1234',
-      vehicle: 'White Ford Transit',
-      eta: '15 Mins'
-    },
-    trackingSteps: [
-      { title: 'Order Confirmed', time: 'Jul 18, 09:30 AM', done: true },
-      { title: 'Processing', time: 'Jul 18, 11:15 AM', done: true },
-      { title: 'Shipped', time: 'Jul 19, 08:45 AM', done: true },
-      { title: 'Out for Delivery', time: 'Jul 20, 10:12 AM', done: true },
-      { title: 'Delivered', time: 'Pending', done: false }
-    ]
-  },
-  {
-    id: '#ORD-77402',
-    date: 'July 12, 2026',
-    status: 'Delivered',
-    total: (NEW_PRODUCTS[8].price * 1) + (NEW_PRODUCTS[9].price * 1) + (NEW_PRODUCTS[10].price * 2),
-    itemsText: '4 items',
-    products: [
-      { name: NEW_PRODUCTS[8].name, qty: 1, price: NEW_PRODUCTS[8].price, image: NEW_PRODUCTS[8].rootImage },
-      { name: NEW_PRODUCTS[9].name, qty: 1, price: NEW_PRODUCTS[9].price, image: NEW_PRODUCTS[9].rootImage },
-      { name: NEW_PRODUCTS[10].name, qty: 2, price: NEW_PRODUCTS[10].price, image: NEW_PRODUCTS[10].rootImage }
-    ],
-    address: {
-      name: 'Retail Partners Inc.',
-      street: '1284 Market Street, Suite 400',
-      city: 'San Francisco, CA 94104',
-      phone: '+1 (555) 019-2834'
-    }
-  }
-];
 
 const OrdersSkeleton = () => {
   const shimmerAnim = React.useRef(new Animated.Value(0)).current;
@@ -136,13 +84,71 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
   triggerLightHaptic,
 }) => {
   const [isReady, setIsReady] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
+  useEffect(() => {
+    fetchAllProducts({ limit: 100 }).then(res => {
+      setProducts(res.products);
+      const list = res.products;
+      if (list.length >= 11) {
+        setOrders([
+          {
+            id: '#ORD-88219',
+            date: 'July 18, 2026',
+            status: 'Out for Delivery',
+            total: (list[4].price * 1) + (list[5].price * 2),
+            itemsText: '3 items',
+            products: [
+              { name: list[4].name, qty: 1, price: list[4].price, image: list[4].rootImage },
+              { name: list[5].name, qty: 2, price: list[5].price, image: list[5].rootImage }
+            ],
+            address: {
+              name: 'Retail Partners Inc.',
+              street: '1284 Market Street, Suite 400',
+              city: 'San Francisco, CA 94104',
+              phone: '+1 (555) 019-2834'
+            },
+            deliveryAgent: {
+              name: 'Michael Davis',
+              phone: '+1 (555) 890-1234',
+              vehicle: 'White Ford Transit',
+              eta: '15 Mins'
+            },
+            trackingSteps: [
+              { title: 'Order Confirmed', time: 'Jul 18, 09:30 AM', done: true },
+              { title: 'Processing', time: 'Jul 18, 11:15 AM', done: true },
+              { title: 'Shipped', time: 'Jul 19, 08:45 AM', done: true },
+              { title: 'Out for Delivery', time: 'Jul 20, 10:12 AM', done: true },
+              { title: 'Delivered', time: 'Pending', done: false }
+            ]
+          },
+          {
+            id: '#ORD-77402',
+            date: 'July 12, 2026',
+            status: 'Delivered',
+            total: (list[8].price * 1) + (list[9].price * 1) + (list[10].price * 2),
+            itemsText: '4 items',
+            products: [
+              { name: list[8].name, qty: 1, price: list[8].price, image: list[8].rootImage },
+              { name: list[9].name, qty: 1, price: list[9].price, image: list[9].rootImage },
+              { name: list[10].name, qty: 2, price: list[10].price, image: list[10].rootImage }
+            ],
+            address: {
+              name: 'Retail Partners Inc.',
+              street: '1284 Market Street, Suite 400',
+              city: 'San Francisco, CA 94104',
+              phone: '+1 (555) 019-2834'
+            }
+          }
+        ]);
+      }
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setIsReady(true);
-    }, 1200);
-    return () => clearTimeout(timer);
+    }).catch(err => {
+      console.error(err);
+      setIsReady(true);
+    });
   }, []);
 
   // Calculate order metrics locally for current cart
@@ -150,7 +156,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     let totalItems = 0;
     let totalPrice = 0;
     Object.keys(cart).forEach((id) => {
-      const product = NEW_PRODUCTS.find((p) => p.id === id);
+      const product = products.find((p) => p.id === id);
       if (product) {
         const units = cart[id];
         totalItems += units;
@@ -214,7 +220,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
             </View>
 
             <View style={{ gap: 16 }}>
-              {MOCK_ORDERS.map((order, idx) => (
+              {orders.map((order, idx) => (
                 <View key={idx} style={{
                   backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#E2E8F0', overflow: 'hidden'
                 }}>
@@ -249,14 +255,20 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                       <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#F1F5F9' }}>
                         <Text style={{ fontSize: 10, fontWeight: '900', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.8 }}>Products in Order</Text>
                       </View>
-                      {order.products.map((prod, pIdx) => (
+                      {order.products.map((prod: any, pIdx: number) => (
                         <View key={pIdx} style={{
                           flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
                           padding: 12, borderTopWidth: pIdx > 0 ? 1 : 0, borderTopColor: '#F1F5F9'
                         }}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                             <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: '#E2E8F0', overflow: 'hidden' }}>
-                              <Image source={prod.image} contentFit="cover" style={{ width: '100%', height: '100%' }} />
+                              <Image
+                                source={prod.image}
+                                contentFit="cover"
+                                style={{ width: '100%', height: '100%' }}
+                                cachePolicy="disk"
+                                transition={200}
+                              />
                             </View>
                             <View>
                               <Text style={{ fontSize: 12, fontWeight: '800', color: '#0F172A' }}>{prod.name}</Text>
@@ -285,7 +297,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                       <View style={{ marginTop: 4 }}>
                         <Text style={{ fontSize: 10, fontWeight: '900', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>Delivery Tracking</Text>
                         <View style={{ paddingLeft: 8 }}>
-                          {order.trackingSteps.map((step, sIdx) => {
+                          {order.trackingSteps.map((step: any, sIdx: number) => {
                             const isLast = sIdx === order.trackingSteps.length - 1;
                             return (
                               <View key={sIdx} style={{ flexDirection: 'row', gap: 12, marginBottom: isLast ? 0 : 16 }}>

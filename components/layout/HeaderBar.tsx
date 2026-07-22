@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Pressable, Text, TextInput, Animated, Dimensions, Keyboard, ScrollView, Image, BackHandler } from 'react-native';
+import { View, Pressable, Text, TextInput, Animated, Dimensions, Keyboard, ScrollView, BackHandler } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { TabType, Cart } from '../types';
-import { NEW_PRODUCTS } from '../../lib/products';
+import { fetchAllProducts } from '../../lib/fetchAllProducts';
+import { NewProduct } from '../../lib/products';
 
 interface HeaderBarProps {
   currentTab: TabType;
@@ -59,7 +61,13 @@ const renderProductCard = (product: any, onPress?: (p: any) => void) => (
         </View>
       </View>
 
-      <Image source={product.rootImage} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+      <Image
+        source={product.rootImage}
+        style={{ width: '100%', height: '100%' }}
+        contentFit="cover"
+        cachePolicy="disk"
+        transition={200}
+      />
     </View>
     
     {/* Info */}
@@ -95,6 +103,39 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   const [isOverlayMounted, setIsOverlayMounted] = useState(false);
   const slimeAnim = useRef(new Animated.Value(0)).current;
   const screenHeight = Dimensions.get('window').height;
+  const [products, setProducts] = useState<NewProduct[]>([]);
+  const [searchResults, setSearchResults] = useState<NewProduct[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (isSearchActive) {
+      fetchAllProducts({ limit: 100 }).then(res => {
+        setProducts(res.products);
+      }).catch(err => console.error(err));
+    }
+  }, [isSearchActive]);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const delayDebounce = setTimeout(async () => {
+      try {
+        const res = await fetchAllProducts({ search: searchQuery, limit: 100 });
+        setSearchResults(res.products);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (isSearchActive) {
@@ -140,11 +181,50 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
     Animated.spring(slimeAnim, {
       toValue: 0,
       friction: 8,
-      tension: 60,
+      tension: 40,
       useNativeDriver: true,
     }).start(() => {
       setIsOverlayMounted(false); // Unmount overlay when animation finishes
     });
+  };
+
+  const SearchSkeleton = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+    useEffect(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true })
+        ])
+      ).start();
+    }, [pulseAnim]);
+
+    return (
+      <View style={{ gap: 16 }}>
+        <Text style={{ fontSize: 13, fontWeight: '900', color: '#64748B', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
+          Searching Products...
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginHorizontal: -4, marginBottom: 12 }} contentContainerStyle={{ gap: 12, paddingBottom: 16 }}>
+          {[1, 2, 3].map((_, i) => (
+            <Animated.View key={i} style={{ opacity: pulseAnim, width: 150, height: 220, backgroundColor: '#F1F5F9', borderRadius: 20 }} />
+          ))}
+        </ScrollView>
+        <View style={{ height: 1, backgroundColor: '#F1F5F9', marginBottom: 12 }} />
+        <Text style={{ fontSize: 13, fontWeight: '900', color: '#64748B', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+          Suggestions
+        </Text>
+        {[1, 2, 3].map((_, i) => (
+          <Animated.View key={i} style={{ opacity: pulseAnim, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16, padding: 8 }}>
+            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#F1F5F9' }} />
+            <View style={{ flex: 1, gap: 6 }}>
+              <View style={{ width: 140, height: 16, backgroundColor: '#F1F5F9', borderRadius: 4 }} />
+              <View style={{ width: 80, height: 12, backgroundColor: '#E2E8F0', borderRadius: 4 }} />
+            </View>
+          </Animated.View>
+        ))}
+      </View>
+    );
   };
 
   const handleExecuteSearch = () => {
@@ -192,7 +272,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                   Recent Products
                 </Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ flexGrow: 0, marginHorizontal: -4, marginBottom: 4 }} contentContainerStyle={{ paddingBottom: 28, paddingTop: 12, paddingLeft: 4, paddingRight: 24 }}>
-                  {NEW_PRODUCTS.slice(0, 5).map(product => renderProductCard(product, (p) => {
+                  {products.slice(0, 5).map(product => renderProductCard(product, (p) => {
                     handleCloseSearch();
                     if (onProductSelect) onProductSelect(p);
                   }))}
@@ -212,7 +292,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                 ].map((item, i) => (
                   <Pressable key={i} onPress={() => {
                     if (item.type === 'Product') {
-                      const p = NEW_PRODUCTS.find(prod => prod.name === item.text);
+                      const p = products.find(prod => prod.name === item.text);
                       if (p) {
                         handleCloseSearch();
                         if (onProductSelect) onProductSelect(p);
@@ -229,14 +309,12 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                   </Pressable>
                 ))}
               </>
+            ) : isSearching ? (
+              <SearchSkeleton />
             ) : (
               (() => {
                 const query = searchQuery.toLowerCase();
-                const filteredProducts = NEW_PRODUCTS.filter(p => 
-                  p.name.toLowerCase().includes(query) ||
-                  p.brand.toLowerCase().includes(query) ||
-                  p.category.toLowerCase().includes(query)
-                );
+                const filteredProducts = searchResults;
                 
                 const matchingCategories = Array.from(new Set(filteredProducts.filter(p => p.category.toLowerCase().includes(query)).map(p => p.category))).slice(0, 2);
                 const matchingTitles = Array.from(new Set(filteredProducts.filter(p => p.name.toLowerCase().includes(query)).map(p => p.name))).slice(0, 3);
@@ -273,7 +351,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                       {suggestions.map((item, i) => (
                         <Pressable key={i} onPress={() => {
                           if (item.type === 'Product') {
-                            const p = NEW_PRODUCTS.find(prod => prod.name === item.text);
+                            const p = products.find(prod => prod.name === item.text);
                             if (p) {
                               handleCloseSearch();
                               if (onProductSelect) onProductSelect(p);
