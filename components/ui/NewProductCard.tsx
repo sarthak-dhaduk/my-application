@@ -31,13 +31,21 @@ export const NewProductCard: React.FC<NewProductCardProps> = ({
 
   // ── Shared sub-components ────────────────────────────────────────────────
 
+  const getCardImageSource = () => {
+    const img = product.rootImage;
+    if (isGrid && typeof img === 'string' && img.includes('drive.google.com/uc?id=')) {
+      return img.replace('drive.google.com/uc?id=', 'drive.google.com/thumbnail?id=') + '&sz=w400';
+    }
+    return img;
+  };
+
   const ImageFrame = ({ fullWidth }: { fullWidth: boolean }) => (
     <View
       style={{ width: fullWidth ? '100%' : '100%', aspectRatio: 3 / 4 }}
       className="relative bg-slate-50"
     >
       <Image
-        source={product.rootImage}
+        source={getCardImageSource()}
         contentFit="cover"
         style={{ width: '100%', height: '100%' }}
         cachePolicy="disk"

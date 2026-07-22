@@ -85,8 +85,14 @@ export const ShopCategoryView: React.FC<ShopCategoryViewProps> = ({
       setDisplayedProducts(res.products);
       setHasMore(res.hasMore);
       setTotalCount(res.total);
-      // Prefetch images
-      const urls = res.products.map((p: any) => p.rootImage).filter((url: any) => typeof url === 'string');
+      // Prefetch images (formatted to match active layout mode)
+      const urls = res.products.map((p: any) => {
+        const img = p.rootImage;
+        if (layoutMode === 'grid' && typeof img === 'string' && img.includes('drive.google.com/uc?id=')) {
+          return img.replace('drive.google.com/uc?id=', 'drive.google.com/thumbnail?id=') + '&sz=w400';
+        }
+        return img;
+      }).filter((url: any) => typeof url === 'string');
       if (urls.length > 0) Image.prefetch(urls);
     } catch (err) {
       console.error('Error loading initial products:', err);
@@ -108,8 +114,14 @@ export const ShopCategoryView: React.FC<ShopCategoryViewProps> = ({
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setDisplayedProducts((prev) => [...prev, ...res.products]);
       setHasMore(res.hasMore);
-      // Prefetch images
-      const urls = res.products.map((p: any) => p.rootImage).filter((url: any) => typeof url === 'string');
+      // Prefetch images (formatted to match active layout mode)
+      const urls = res.products.map((p: any) => {
+        const img = p.rootImage;
+        if (layoutMode === 'grid' && typeof img === 'string' && img.includes('drive.google.com/uc?id=')) {
+          return img.replace('drive.google.com/uc?id=', 'drive.google.com/thumbnail?id=') + '&sz=w400';
+        }
+        return img;
+      }).filter((url: any) => typeof url === 'string');
       if (urls.length > 0) Image.prefetch(urls);
     } catch (err) {
       console.error('Error loading more products:', err);

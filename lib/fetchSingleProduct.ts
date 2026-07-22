@@ -1,23 +1,17 @@
-import { getApiUrl } from './api';
+import { NEW_PRODUCTS } from './products';
 
-const fetchSingleProductCache: Record<string, any> = {};
-
-export async function fetchSingleProduct(id: string, bypassCache = false) {
+export async function fetchSingleProduct(id: string) {
   if (!id) {
     throw new Error('Product ID is required');
   }
 
-  if (!bypassCache && fetchSingleProductCache[id]) {
-    return fetchSingleProductCache[id];
+  const product = NEW_PRODUCTS.find(p => p.id === id);
+  if (!product) {
+    throw new Error(`Product not found with ID ${id}`);
   }
 
-  const url = getApiUrl(`/api/product?id=${encodeURIComponent(id)}`);
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch product ${id}: ${response.statusText}`);
-  }
+  // Simulate minimal layout delay so skeletons show smoothly
+  await new Promise(resolve => setTimeout(resolve, 300));
 
-  const data = await response.json();
-  fetchSingleProductCache[id] = data;
-  return data;
+  return product;
 }

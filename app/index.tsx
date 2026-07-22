@@ -192,6 +192,7 @@ export default function Index() {
               updateCartQty={updateCartQty}
               onPlaceOrder={() => handleBuyNow(selectedNewProduct.id)}
               triggerLightHaptic={triggerLightHaptic}
+              onProductSelect={setSelectedNewProduct}
             />
           ) : (
             <ShopView
@@ -225,6 +226,7 @@ export default function Index() {
                 updateCartQty={updateCartQty}
                 onPlaceOrder={() => handleBuyNow(selectedNewProduct.id)}
                 triggerLightHaptic={triggerLightHaptic}
+                onProductSelect={setSelectedNewProduct}
               />
             ) : (
               <OffersView

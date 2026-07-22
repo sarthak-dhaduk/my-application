@@ -206,8 +206,14 @@ export const ShopView: React.FC<ShopViewProps> = ({
     fetchAllProducts({ limit: 100 })
       .then((res) => {
         setProducts(res.products);
-        // Prefetch images in background
-        const urls = res.products.map((p: any) => p.rootImage).filter((url: any) => typeof url === 'string');
+        // Prefetch images in background (formatted to match card compression)
+        const urls = res.products.map((p: any) => {
+          const img = p.rootImage;
+          if (typeof img === 'string' && img.includes('drive.google.com/uc?id=')) {
+            return img.replace('drive.google.com/uc?id=', 'drive.google.com/thumbnail?id=') + '&sz=w400';
+          }
+          return img;
+        }).filter((url: any) => typeof url === 'string');
         if (urls.length > 0) {
           Image.prefetch(urls);
         }
