@@ -24,7 +24,13 @@
         "foregroundImage": "./assets/XC.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "usesCleartextTraffic": true,
+      "config": {
+        "abiFilters": [
+          "arm64-v8a"
+        ]
+      }
     },
     "web": {
       "output": "server",

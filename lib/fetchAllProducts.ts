@@ -1,6 +1,4 @@
-import { getApiUrl } from './api';
-
-const fetchAllProductsCache: Record<string, any> = {};
+import { NEW_PRODUCTS } from './products';
 
 export interface FetchProductsParams {
   limit?: number;
@@ -9,7 +7,6 @@ export interface FetchProductsParams {
   tag?: string;
   search?: string;
   offerOnly?: boolean;
-  bypassCache?: boolean;
 }
 
 export async function fetchAllProducts(params: FetchProductsParams = {}) {
@@ -19,31 +16,39 @@ export async function fetchAllProducts(params: FetchProductsParams = {}) {
     category = '',
     tag = '',
     search = '',
-    offerOnly = false,
-    bypassCache = false
+    offerOnly = false
   } = params;
 
-  const cacheKey = JSON.stringify({ limit, skip, category, tag, search, offerOnly });
+  let filtered = [...NEW_PRODUCTS];
 
-  if (!bypassCache && fetchAllProductsCache[cacheKey]) {
-    return fetchAllProductsCache[cacheKey];
+  if (category && category !== 'All') {
+    filtered = filtered.filter(p => p.category.toLowerCase() === category.toLowerCase());
+  }
+  if (tag) {
+    filtered = filtered.filter(p => p.tag.toLowerCase() === tag.toLowerCase());
+  }
+  if (offerOnly) {
+    filtered = filtered.filter(p => p.offer !== undefined && p.offer !== null && p.offer > 0);
+  }
+  if (search) {
+    const s = search.toLowerCase();
+    filtered = filtered.filter(p => 
+      p.name.toLowerCase().includes(s) ||
+      p.brand.toLowerCase().includes(s) ||
+      p.category.toLowerCase().includes(s)
+    );
   }
 
-  const queryParams = new URLSearchParams();
-  queryParams.append('limit', limit.toString());
-  queryParams.append('skip', skip.toString());
-  if (category) queryParams.append('category', category);
-  if (tag) queryParams.append('tag', tag);
-  if (search) queryParams.append('search', search);
-  if (offerOnly) queryParams.append('offerOnly', 'true');
+  const total = filtered.length;
+  const products = filtered.slice(skip, skip + limit);
+  const hasMore = skip + products.length < total;
 
-  const url = getApiUrl(`/api/products?${queryParams.toString()}`);
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch products: ${response.statusText}`);
-  }
+  // Simulate minimal layout delay so skeletons show smoothly
+  await new Promise(resolve => setTimeout(resolve, 300));
 
-  const data = await response.json();
-  fetchAllProductsCache[cacheKey] = data;
-  return data;
+  return {
+    products,
+    total,
+    hasMore
+  };
 }

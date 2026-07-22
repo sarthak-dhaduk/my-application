@@ -41,6 +41,7 @@ interface Props {
   updateCartQty: (id: string, delta: number, product: any) => void;
   onPlaceOrder: () => void;
   triggerLightHaptic: () => void;
+  onProductSelect?: (product: NewProduct) => void;
 }
 
 const ProductDetailSkeleton = () => {
@@ -109,7 +110,7 @@ const ProductDetailSkeleton = () => {
 };
 
 export const NewProductDetailView: React.FC<Props> = ({
-  product, onBack, cart, updateCartQty, onPlaceOrder, triggerLightHaptic,
+  product, onBack, cart, updateCartQty, onPlaceOrder, triggerLightHaptic, onProductSelect,
 }) => {
   const [activeImg, setActiveImg] = useState(0);
   const [selectedSize, setSelectedSize] = useState((SIZE_OPTIONS[product.category] || ['One Size'])[0]);
@@ -537,7 +538,12 @@ export const NewProductDetailView: React.FC<Props> = ({
                     product={rp}
                     cartQty={cart[rp.id] || 0}
                     onUpdateQty={(delta) => updateCartQty(rp.id, delta, rp)}
-                    onPress={() => {}}
+                    onPress={() => {
+                      triggerLightHaptic();
+                      if (onProductSelect) {
+                        onProductSelect(rp);
+                      }
+                    }}
                     isGrid={true}
                   />
                 ))}
