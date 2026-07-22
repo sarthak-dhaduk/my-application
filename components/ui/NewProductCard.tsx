@@ -40,6 +40,9 @@ export const NewProductCard: React.FC<NewProductCardProps> = ({
         source={product.rootImage}
         contentFit="cover"
         style={{ width: '100%', height: '100%' }}
+        cachePolicy="disk"
+        transition={200}
+        priority={isGrid ? 'high' : 'normal'}
       />
       {product.offer && (
         <View

@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, ScrollView, LayoutAnimation, ActivityIndicator, Animated } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
-import { NEW_PRODUCTS } from '../../lib/products';
+import { fetchAllProducts } from '../../lib/fetchAllProducts';
+import { NewProduct } from '../../lib/products';
+import { Image } from 'expo-image';
 import { Cart } from '../types';
 import { NewProductCard } from '../ui/NewProductCard';
 
@@ -26,9 +28,9 @@ interface OffersViewProps {
   cart: Cart;
   updateCartQty: (id: string, delta: number, product: any) => void;
   triggerLightHaptic: () => void;
-  searchQuery?: string;
+  searchQuery: string;
   selectedCategory: string;
-  setSelectedCategory: (category: string) => void;
+  setSelectedCategory: (cat: string) => void;
 }
 
 const OffersSkeleton = ({ layoutMode }: { layoutMode: 'grid' | 'list' }) => {
@@ -84,16 +86,42 @@ export const OffersView: React.FC<OffersViewProps> = ({
   selectedCategory,
   setSelectedCategory,
 }) => {
-  const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('list');
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  const [visibleCount, setVisibleCount] = useState(0);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid');
+  const [displayedProducts, setDisplayedProducts] = useState<NewProduct[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const categoryScrollRef = useRef<ScrollView>(null);
 
+  const loadInitialProducts = async () => {
+    try {
+      setIsInitialLoading(true);
+      const res = await fetchAllProducts({
+        category: selectedCategory,
+        search: searchQuery,
+        offerOnly: true,
+        limit: 4,
+        skip: 0
+      });
+      setDisplayedProducts(res.products);
+      setHasMore(res.hasMore);
+      setTotalCount(res.total);
+      // Prefetch images
+      const urls = res.products.map((p: any) => p.rootImage).filter((url: any) => typeof url === 'string');
+      if (urls.length > 0) Image.prefetch(urls);
+    } catch (err) {
+      console.error('Error loading initial offers:', err);
+    } finally {
+      setIsInitialLoading(false);
+    }
+  };
+
   useEffect(() => {
+    loadInitialProducts();
+
     // Auto-scroll the filter bar to the selected category (deferred to allow layout)
     const catIndex = ALL_CATEGORIES.indexOf(selectedCategory);
     if (catIndex !== -1 && categoryScrollRef.current) {
@@ -104,39 +132,39 @@ export const OffersView: React.FC<OffersViewProps> = ({
         });
       }, 150);
     }
+  }, [selectedCategory, searchQuery]);
 
-    setIsInitialLoading(true);
-    setVisibleCount(0);
-    const timer = setTimeout(() => {
-      setVisibleCount(6);
-      setIsInitialLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [selectedCategory, searchQuery, layoutMode]);
-
-  const filteredProducts = NEW_PRODUCTS.filter((p) => {
-    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
-    const matchesSearch = searchQuery
-      ? p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.brand.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-    return matchesCategory && matchesSearch;
-  });
-
-  const displayedProducts = filteredProducts.slice(0, visibleCount);
+  const loadMoreProducts = async () => {
+    if (isLoadingMore || !hasMore) return;
+    try {
+      setIsLoadingMore(true);
+      const currentLength = displayedProducts.length;
+      const res = await fetchAllProducts({
+        category: selectedCategory,
+        search: searchQuery,
+        offerOnly: true,
+        limit: 4,
+        skip: currentLength
+      });
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setDisplayedProducts((prev) => [...prev, ...res.products]);
+      setHasMore(res.hasMore);
+      // Prefetch images
+      const urls = res.products.map((p: any) => p.rootImage).filter((url: any) => typeof url === 'string');
+      if (urls.length > 0) Image.prefetch(urls);
+    } catch (err) {
+      console.error('Error loading more offers:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const handleScroll = (event: any) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+    const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
 
-    if (isCloseToBottom && !isLoadingMore && visibleCount < filteredProducts.length) {
-      setIsLoadingMore(true);
-      setTimeout(() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setVisibleCount((prev) => prev + 6);
-        setIsLoadingMore(false);
-      }, 1000);
+    if (isCloseToBottom && !isLoadingMore && hasMore) {
+      loadMoreProducts();
     }
   };
 
@@ -149,7 +177,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
             Current Offers
           </Text>
           <Text className="text-[9px] font-semibold text-slate-400 mt-0.5">
-            {filteredProducts.length} items{selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''}
+            {totalCount} items{selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''}
           </Text>
         </View>
 
@@ -259,13 +287,13 @@ export const OffersView: React.FC<OffersViewProps> = ({
       >
         {isInitialLoading ? (
           <OffersSkeleton layoutMode={layoutMode} />
-        ) : filteredProducts.length === 0 ? (
+        ) : displayedProducts.length === 0 ? (
           <View className="py-16 items-center justify-center">
             <Text className="text-slate-400 text-sm">No items found.</Text>
           </View>
         ) : layoutMode === 'grid' ? (
           <View className="flex-row flex-wrap justify-between">
-            {displayedProducts.map((product) => (
+            {displayedProducts.map((product: NewProduct) => (
               <NewProductCard
                 key={product.id}
                 product={product}
@@ -278,12 +306,12 @@ export const OffersView: React.FC<OffersViewProps> = ({
           </View>
         ) : (
           <>
-            {displayedProducts.map((product) => (
+            {displayedProducts.map((product: NewProduct) => (
               <NewProductCard
                 key={product.id}
                 product={product}
                 cartQty={cart[product.id] || 0}
-                onUpdateQty={(delta) => updateCartQty(product.id, delta, product)}
+                onUpdateQty={(delta: number) => updateCartQty(product.id, delta, product)}
                 onPress={() => { triggerLightHaptic(); setSelectedNewProduct(product); }}
                 isGrid={false}
               />
@@ -292,7 +320,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
         )}
 
         {/* Infinite Scroll Indicator */}
-        {!isInitialLoading && filteredProducts.length > visibleCount && (
+        {!isInitialLoading && hasMore && (
           <View className="pt-6 pb-8 items-center justify-center w-full">
             <ActivityIndicator size="small" color="#D74A33" />
           </View>

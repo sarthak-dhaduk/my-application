@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView, Animated } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { NewProduct, NEW_PRODUCTS } from '../../lib/products';
+import { NewProduct } from '../../lib/products';
+import { fetchAllProducts } from '../../lib/fetchAllProducts';
 import { NewProductCard } from './NewProductCard';
 import { Cart } from '../types';
 
@@ -115,18 +116,32 @@ export const NewProductDetailView: React.FC<Props> = ({
   const [selectedColor, setSelectedColor] = useState(0);
   const [activeTab, setActiveTab] = useState<'desc' | 'spec' | 'reviews'>('desc');
   const [isReady, setIsReady] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState<NewProduct[]>([]);
 
   useEffect(() => {
     setIsReady(false);
     const timer = setTimeout(() => setIsReady(true), 1200);
+
+    // Fetch related products dynamically
+    fetchAllProducts({ category: product.category, limit: 3 })
+      .then(res => {
+        setRelatedProducts(res.products.filter((p: any) => p.id !== product.id).slice(0, 2));
+      })
+      .catch(err => console.error(err));
+
+    // Prefetch detail image slides
+    const urls = (product.images || []).filter((url: any) => typeof url === 'string');
+    if (urls.length > 0) {
+      Image.prefetch(urls);
+    }
+
     return () => clearTimeout(timer);
-  }, [product.id]);
+  }, [product.id, product.category, product.images]);
 
   const sizes = SIZE_OPTIONS[product.category] || ['One Size'];
   const colors = COLOR_OPTIONS[product.category] || [{ label: 'Default', hex: '#64748B' }];
   const cartQty = cart[product.id] || 0;
   const discountedPrice = product.offer ? product.price * (1 - product.offer / 100) : product.price;
-  const relatedProducts = NEW_PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 2);
   const avgRating = (MOCK_REVIEWS.reduce((s, r) => s + r.rating, 0) / MOCK_REVIEWS.length).toFixed(1);
 
   return (
@@ -174,8 +189,11 @@ export const NewProductDetailView: React.FC<Props> = ({
           <View style={{ width: '100%', aspectRatio: 3 / 4, backgroundColor: '#F8FAFC', borderRadius: 16, overflow: 'hidden' }}>
             <Image
               source={product.images[activeImg] ?? product.rootImage}
+              placeholder={product.rootImage}
               contentFit="cover"
               style={{ width: '100%', height: '100%' }}
+              cachePolicy="disk"
+              transition={200}
             />
           </View>
         </View>
@@ -196,7 +214,13 @@ export const NewProductDetailView: React.FC<Props> = ({
                   borderWidth: 2, borderColor: activeImg === idx ? THEME : '#E2E8F0',
                 }}
               >
-                <Image source={img} contentFit="cover" style={{ width: '100%', height: '100%' }} />
+                <Image 
+                  source={img} 
+                  contentFit="cover" 
+                  style={{ width: '100%', height: '100%' }} 
+                  cachePolicy="disk"
+                  transition={200}
+                />
               </Pressable>
             ))}
           </View>

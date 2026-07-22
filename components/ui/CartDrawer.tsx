@@ -3,7 +3,8 @@ import { Image } from 'expo-image';
 import React, { useEffect, useState } from 'react';
 import { Animated, Dimensions, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NEW_PRODUCTS } from '../../lib/products';
+import { fetchSingleProduct } from '../../lib/fetchSingleProduct';
+import { NewProduct } from '../../lib/products';
 
 import { Cart, Product } from '../types';
 
@@ -73,9 +74,33 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const slideAnim = React.useRef(new Animated.Value(SCREEN_WIDTH)).current;
   const insets = useSafeAreaInsets();
+  const [resolvedProducts, setResolvedProducts] = useState<Record<string, NewProduct>>({});
+
+  useEffect(() => {
+    const fetchCartProducts = async () => {
+      const ids = Object.keys(cart);
+      const newResolved = { ...resolvedProducts };
+      let changed = false;
+      for (const id of ids) {
+        if (!newResolved[id]) {
+          try {
+            const prod = await fetchSingleProduct(id);
+            newResolved[id] = prod;
+            changed = true;
+          } catch (err) {
+            console.error('Error fetching product for cart:', err);
+          }
+        }
+      }
+      if (changed) {
+        setResolvedProducts(newResolved);
+      }
+    };
+    fetchCartProducts();
+  }, [cart]);
 
   const getProductInfo = (id: string) => {
-    let p2 = NEW_PRODUCTS.find((p) => p.id === id);
+    let p2 = resolvedProducts[id];
     if (p2) {
       const units = cart[id]; // no packSize
       const price = p2.offer ? p2.price * (1 - p2.offer / 100) : p2.price;
@@ -225,7 +250,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           }}>
                             {info.rootImage && (
                               <View style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: '#F8FAFC', overflow: 'hidden', marginRight: 12 }}>
-                                <Image source={info.rootImage} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+                                <Image
+                                  source={info.rootImage}
+                                  style={{ width: '100%', height: '100%' }}
+                                  contentFit="cover"
+                                  cachePolicy="disk"
+                                  transition={200}
+                                />
                               </View>
                             )}
                             <View style={{ flex: 1, paddingLeft: info.rootImage ? 0 : 8 }}>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView, LayoutAnimation, ActivityIndicator, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { NEW_PRODUCTS } from '../../lib/products';
+import { Image } from 'expo-image';
+import { fetchAllProducts } from '../../lib/fetchAllProducts';
+import { NewProduct } from '../../lib/products';
 import { Cart } from '../types';
 import { NewProductCard } from '../ui/NewProductCard';
 
@@ -29,7 +31,7 @@ const ShopCategorySkeleton = ({ layoutMode }: { layoutMode: 'grid' | 'list' }) =
 
   return (
     <View className={layoutMode === 'grid' ? "flex-row flex-wrap justify-between" : "flex-col pb-8"}>
-      {[1, 2, 3, 4, 5, 6].map((_, i) => (
+      {[1, 2, 3, 4].map((_, i) => (
         <Animated.View 
           key={i} 
           style={{ 
@@ -70,34 +72,58 @@ export const ShopCategoryView: React.FC<ShopCategoryViewProps> = ({
   const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid');
   const [showDropdown, setShowDropdown] = useState(false);
   
-  const [visibleCount, setVisibleCount] = useState(0);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [displayedProducts, setDisplayedProducts] = useState<NewProduct[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const loadInitialProducts = async () => {
+    try {
+      setIsInitialLoading(true);
+      const res = await fetchAllProducts({ category, limit: 4, skip: 0 });
+      setDisplayedProducts(res.products);
+      setHasMore(res.hasMore);
+      setTotalCount(res.total);
+      // Prefetch images
+      const urls = res.products.map((p: any) => p.rootImage).filter((url: any) => typeof url === 'string');
+      if (urls.length > 0) Image.prefetch(urls);
+    } catch (err) {
+      console.error('Error loading initial products:', err);
+    } finally {
+      setIsInitialLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setIsInitialLoading(true);
-    setVisibleCount(0);
-    const timer = setTimeout(() => {
-      setVisibleCount(6);
-      setIsInitialLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [category, layoutMode]);
+    loadInitialProducts();
+  }, [category]);
 
-  const filteredProducts = NEW_PRODUCTS.filter((p) => p.category === category);
-  const displayedProducts = filteredProducts.slice(0, visibleCount);
+  const loadMoreProducts = async () => {
+    if (isLoadingMore || !hasMore) return;
+    try {
+      setIsLoadingMore(true);
+      const currentLength = displayedProducts.length;
+      const res = await fetchAllProducts({ category, limit: 4, skip: currentLength });
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setDisplayedProducts((prev) => [...prev, ...res.products]);
+      setHasMore(res.hasMore);
+      // Prefetch images
+      const urls = res.products.map((p: any) => p.rootImage).filter((url: any) => typeof url === 'string');
+      if (urls.length > 0) Image.prefetch(urls);
+    } catch (err) {
+      console.error('Error loading more products:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const handleScroll = (event: any) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+    const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
 
-    if (isCloseToBottom && !isLoadingMore && visibleCount < filteredProducts.length) {
-      setIsLoadingMore(true);
-      setTimeout(() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setVisibleCount((prev) => prev + 6);
-        setIsLoadingMore(false);
-      }, 1000);
+    if (isCloseToBottom && !isLoadingMore && hasMore) {
+      loadMoreProducts();
     }
   };
 
@@ -121,7 +147,7 @@ export const ShopCategoryView: React.FC<ShopCategoryViewProps> = ({
               {category}
             </Text>
             <Text className="text-[9px] font-semibold text-slate-400 mt-0.5">
-              {filteredProducts.length} items
+              {totalCount} items
             </Text>
           </View>
         </View>
@@ -194,7 +220,7 @@ export const ShopCategoryView: React.FC<ShopCategoryViewProps> = ({
       >
         {isInitialLoading ? (
           <ShopCategorySkeleton layoutMode={layoutMode} />
-        ) : filteredProducts.length === 0 ? (
+        ) : displayedProducts.length === 0 ? (
           <View className="py-20 items-center justify-center">
             <Ionicons name="sad-outline" size={48} color="#CBD5E1" />
             <Text className="text-slate-400 font-bold mt-4">No products found in this category.</Text>
@@ -232,7 +258,7 @@ export const ShopCategoryView: React.FC<ShopCategoryViewProps> = ({
         )}
 
         {/* Infinite Scroll Indicator */}
-        {!isInitialLoading && filteredProducts.length > visibleCount && (
+        {!isInitialLoading && hasMore && (
           <View className="pt-6 pb-8 items-center justify-center w-full">
             <ActivityIndicator size="small" color="#D74A33" />
           </View>

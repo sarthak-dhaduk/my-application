@@ -3,7 +3,8 @@ import { Image } from 'expo-image';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Dimensions, LayoutAnimation, PanResponder, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { NEW_PRODUCTS, NewProduct } from '../../lib/products';
+import { fetchAllProducts } from '../../lib/fetchAllProducts';
+import { NewProduct } from '../../lib/products';
 import { Cart, Product, TabType } from '../types';
 import { NewProductCard } from '../ui/NewProductCard';
 import { ShopCategoryView } from './ShopCategoryView';
@@ -196,15 +197,27 @@ export const ShopView: React.FC<ShopViewProps> = ({
   const [isSwitchingLayout, setIsSwitchingLayout] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  // Defer rendering of heavy sections to allow smooth, lag-free screen navigation transitions
+  const [products, setProducts] = useState<NewProduct[]>([]);
+
+  // Fetch products from database on mount and defer rendering
   useEffect(() => {
     setVisibleCount(4);
     setIsReady(false);
-    const timer = setTimeout(() => {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setIsReady(true);
-    }, 800);
-    return () => clearTimeout(timer);
+    fetchAllProducts({ limit: 100 })
+      .then((res) => {
+        setProducts(res.products);
+        // Prefetch images in background
+        const urls = res.products.map((p: any) => p.rootImage).filter((url: any) => typeof url === 'string');
+        if (urls.length > 0) {
+          Image.prefetch(urls);
+        }
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setIsReady(true);
+      })
+      .catch((err) => {
+        console.error('Error fetching shop products:', err);
+        setIsReady(true);
+      });
   }, []);
 
   // Track dragging state in a ref to prevent massive re-renders on touch
@@ -448,13 +461,13 @@ export const ShopView: React.FC<ShopViewProps> = ({
 
   // Memoize grouped products data (caching it on mount to prevent expensive grouping on every render)
   const sectionsConfig = useMemo(() => {
-    const newStockGrouped = NEW_PRODUCTS.filter(p => p.tag === 'New Stock').reduce((acc, p) => {
+    const newStockGrouped = products.filter(p => p.tag === 'New Stock').reduce((acc, p) => {
       if (!acc[p.category]) acc[p.category] = [];
       acc[p.category].push(p);
       return acc;
     }, {} as { [key: string]: NewProduct[] });
 
-    const bestSellerGrouped = NEW_PRODUCTS.filter(p => p.tag === 'Best Seller').reduce((acc, p) => {
+    const bestSellerGrouped = products.filter(p => p.tag === 'Best Seller').reduce((acc, p) => {
       if (!acc[p.category]) acc[p.category] = [];
       acc[p.category].push(p);
       return acc;
@@ -464,13 +477,25 @@ export const ShopView: React.FC<ShopViewProps> = ({
       { title: 'New Stock', data: newStockGrouped, icon: 'sparkles' as const, color: '#D74A33' },
       { title: 'Best Seller', data: bestSellerGrouped, icon: 'trophy' as const, color: '#F59E0B' },
     ];
-  }, []);
+  }, [products]);
 
   if (activeShopCategory) {
     return (
       <ShopCategoryView
         category={activeShopCategory}
-        onBack={() => setActiveShopCategory(null)}
+        onBack={() => {
+          setIsReady(false);
+          setActiveShopCategory(null);
+          fetchAllProducts({ limit: 100 })
+            .then((res) => {
+              setProducts(res.products);
+              setTimeout(() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setIsReady(true);
+              }, 600);
+            })
+            .catch(() => setIsReady(true));
+        }}
         cart={cart}
         updateCartQty={updateCartQty}
         onBuyNow={onBuyNow}
